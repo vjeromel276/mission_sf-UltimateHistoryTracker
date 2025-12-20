@@ -1,0 +1,17 @@
+{
+  "packageDirectories": [
+    {
+      "path": "force-app",
+      "default": true,
+      "package": "UltimateHistoryTracker",
+      "versionName": "ver 0.1",
+      "versionNumber": "0.1.0.NEXT",
+      "defaultNamespace": "missionsf"
+    }
+  ],
+  "namespace": "missionsf",
+  "sourceApiVersion": "65.0",
+  "packageAliases": {
+    "UltimateHistoryTracker": "0HogK0000000W7xSAE"
+  }
+}

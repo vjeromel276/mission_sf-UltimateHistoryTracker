@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomObject xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label>UHT Tracked Object</label>
+    <pluralLabel>UHT Tracked Objects</pluralLabel>
+    <visibility>Public</visibility>
+
+    <fields>
+        <fullName>ObjectApiName__c</fullName>
+        <label>Object API Name</label>
+        <type>Text</type>
+        <length>80</length>
+        <required>true</required>
+    </fields>
+</CustomObject>

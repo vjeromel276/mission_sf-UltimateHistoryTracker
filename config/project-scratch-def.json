@@ -1,0 +1,21 @@
+{
+  "orgName": "missionsf uht scratch",
+  "edition": "Enterprise",
+  "features": [
+    "AuthorApex",
+    "ChangeDataCapture",
+    "API",
+    "EnableSetPasswordInApi"
+  ],
+  "settings": {
+    "lightningExperienceSettings": {
+      "enableS1DesktopEnabled": true
+    },
+    "eventManagerSettings": {
+      "enableChangeDataCapture": true
+    },
+    "securitySettings": {
+      "enableAdminLoginAsAnyUser": true
+    }
+  }
+}
