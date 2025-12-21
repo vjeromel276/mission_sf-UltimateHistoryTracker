@@ -10,19 +10,26 @@ public with sharing class UHT_CDC_Router {
         // Example: 'AccountChangeEvent' -> 'Account'
         String entityName = typeName.removeEnd('ChangeEvent');
 
+        // Try object-specific handler first
         String handlerClassName = 'UHT_' + entityName + '_CDC_Handler';
-
         Type handlerType = Type.forName(handlerClassName);
-        if (handlerType == null) {
-            // No handler for this object – silently skip
-            return;
+
+        UHT_CDC_Handler handler;
+
+        if (handlerType != null) {
+            // Use object-specific handler
+            handler = (UHT_CDC_Handler) handlerType.newInstance();
+        } else {
+            // Fallback to generic handler
+            handler = new UHT_Generic_CDC_Handler();
         }
 
-        UHT_CDC_Handler handler = (UHT_CDC_Handler) handlerType.newInstance();
-
+        // Process each CDC event
         for (SObject e : events) {
             Map<String, Object> payload = UHT_CDC_EventParser.toPayloadMap(e);
-            UHT_CDC_Handler.CDCContext ctx = new UHT_CDC_Handler.CDCContext(payload);
+            UHT_CDC_Handler.CDCContext ctx =
+                new UHT_CDC_Handler.CDCContext(payload);
+
             handler.handle(ctx);
         }
     }
