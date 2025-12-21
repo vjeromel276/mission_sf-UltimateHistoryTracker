@@ -10,6 +10,12 @@ public with sharing class UHT_CDC_Router {
         // Example: 'AccountChangeEvent' -> 'Account'
         String entityName = typeName.removeEnd('ChangeEvent');
 
+        // CDC availability check (non-fatal)
+        if (!UHT_CDC_Availability.isEnabledForObject(entityName)) {
+            // CDC not enabled for this object — silently skip
+            return;
+        }
+
         // Try object-specific handler first
         String handlerClassName = 'UHT_' + entityName + '_CDC_Handler';
         Type handlerType = Type.forName(handlerClassName);
