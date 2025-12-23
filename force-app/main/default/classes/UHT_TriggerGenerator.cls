@@ -53,16 +53,16 @@ public with sharing class UHT_TriggerGenerator {
     /**
      * Generate the trigger source code
      */
-    // private static String generateTriggerCode(String triggerName, String changeEventName) {
-    //     return 'trigger ' + triggerName + ' on ' + changeEventName + ' (after insert) {\n'
-    //          + '    ' + NAMESPACE + '.UHT_CDC_Router.route(Trigger.new);\n'
-    //          + '}';
-    // }
     private static String generateTriggerCode(String triggerName, String changeEventName) {
         return 'trigger ' + triggerName + ' on ' + changeEventName + ' (after insert) {\n'
-             + '    UHT_CDC_Router.route(Trigger.new);\n'
+             + '    ' + NAMESPACE + '.UHT_CDC_Router.route(Trigger.new);\n'
              + '}';
     }
+    // private static String generateTriggerCode(String triggerName, String changeEventName) {
+    //     return 'trigger ' + triggerName + ' on ' + changeEventName + ' (after insert) {\n'
+    //          + '    UHT_CDC_Router.route(Trigger.new);\n'
+    //          + '}';
+    // }
 
     /**
      * Generate the trigger metadata XML
