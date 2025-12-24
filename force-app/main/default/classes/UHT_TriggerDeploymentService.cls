@@ -75,7 +75,7 @@ public with sharing class UHT_TriggerDeploymentService {
      * Check if a trigger already exists for this object
      */
     private static Boolean triggerExists(String objectApiName) {
-        String triggerName = objectApiName + 'ChangeEventTrigger';
+        String triggerName = UHT_NamingHelper.getTriggerName(objectApiName); 
         
         // Query ApexTrigger via Tooling API would be more accurate,
         // but for simplicity we check our deployment log

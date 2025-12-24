@@ -1,3 +1,8 @@
+/**
+ * UHT_TriggerGenerator
+ * 
+ * Generates CDC trigger source code and metadata for deployment.
+ */
 public with sharing class UHT_TriggerGenerator {
 
     public class TriggerFiles {
@@ -30,8 +35,8 @@ public with sharing class UHT_TriggerGenerator {
         // Sanitize input - remove any whitespace
         objectApiName = objectApiName.trim();
 
-        String triggerName = buildTriggerName(objectApiName);
-        String changeEventName = objectApiName + 'ChangeEvent';
+        String triggerName = UHT_NamingHelper.getTriggerName(objectApiName);
+        String changeEventName = UHT_NamingHelper.getChangeEventName(objectApiName);
 
         String triggerCode = generateTriggerCode(triggerName, changeEventName);
         String metaXml = generateMetaXml();
@@ -40,29 +45,15 @@ public with sharing class UHT_TriggerGenerator {
     }
 
     /**
-     * Build trigger name from object API name
-     * Handles both standard objects (Account) and custom objects (Custom_Object__c)
-     */
-    private static String buildTriggerName(String objectApiName) {
-        // For custom objects, the ChangeEvent name includes the __c
-        // e.g., Custom_Object__c -> Custom_Object__ChangeEvent
-        // For standard objects: Account -> AccountChangeEvent
-        return objectApiName + 'ChangeEventTrigger';
-    }
-
-    /**
      * Generate the trigger source code
      */
     private static String generateTriggerCode(String triggerName, String changeEventName) {
-        return 'trigger ' + triggerName + ' on ' + changeEventName + ' (after insert) {\n'
+        String triggerCode = 'trigger ' + triggerName + ' on ' + changeEventName + ' (after insert) {\n'
              + '    ' + NAMESPACE + '.UHT_CDC_Router.route(Trigger.new);\n'
              + '}';
+        System.debug('Generated trigger code:\\n' + triggerCode);
+        return triggerCode;
     }
-    // private static String generateTriggerCode(String triggerName, String changeEventName) {
-    //     return 'trigger ' + triggerName + ' on ' + changeEventName + ' (after insert) {\n'
-    //          + '    UHT_CDC_Router.route(Trigger.new);\n'
-    //          + '}';
-    // }
 
     /**
      * Generate the trigger metadata XML

@@ -10,13 +10,14 @@ public with sharing class UHT_CDC_Availability {
     /**
      * Returns true if the object supports CDC (ChangeEvent type exists)
      * Example input: 'Account' returns true if AccountChangeEvent schema exists
+     * Example input: 'MyObject__c' returns true if MyObject__ChangeEvent schema exists
      */
     public static Boolean isEnabledForObject(String objectApiName) {
         if (String.isBlank(objectApiName)) {
             return false;
         }
 
-        String changeEventName = objectApiName + 'ChangeEvent';
+        String changeEventName = UHT_NamingHelper.getChangeEventName(objectApiName);
 
         try {
             Schema.SObjectType t = Schema.getGlobalDescribe().get(changeEventName);

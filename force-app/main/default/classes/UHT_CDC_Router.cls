@@ -1,3 +1,9 @@
+/**
+ * UHT_CDC_Router
+ * 
+ * Routes CDC events to the appropriate handler.
+ * Called by dynamically deployed CDC triggers.
+ */
 public with sharing class UHT_CDC_Router {
 
     public static void route(List<SObject> events) {
@@ -7,12 +13,15 @@ public with sharing class UHT_CDC_Router {
 
         SObject first = events[0];
         String typeName = first.getSObjectType().getDescribe().getName();
-        // Example: 'AccountChangeEvent' -> 'Account'
-        String entityName = typeName.removeEnd('ChangeEvent');
+        
+        // Extract object API name from ChangeEvent type
+        // e.g., 'AccountChangeEvent' -> 'Account'
+        // e.g., 'MyObject__ChangeEvent' -> 'MyObject__c'
+        String entityName = UHT_NamingHelper.getObjectApiName(typeName);
 
         // CDC availability check (non-fatal)
         if (!UHT_CDC_Availability.isEnabledForObject(entityName)) {
-            System.debug(LoggingLevel.FINE,'UHT: CDC not enabled for ' + entityName + ', skipping events');
+            System.debug(LoggingLevel.FINE, 'UHT: CDC not enabled for ' + entityName + ', skipping events');
             // CDC not enabled for this object — silently skip
             return;
         }
