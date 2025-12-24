@@ -27,7 +27,6 @@
             <value>
                 <fullName>UNDELETE</fullName>
                 <default>false</default>
-                <isActive>false</isActive>
                 <label>UNDELETE</label>
             </value>
         </valueSetDefinition>
