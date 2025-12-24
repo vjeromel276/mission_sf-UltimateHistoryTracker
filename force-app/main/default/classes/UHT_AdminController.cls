@@ -313,7 +313,7 @@ public with sharing class UHT_AdminController {
         for (String objectApiName : objectsToActivate) {
             Metadata.CustomMetadata objMd = new Metadata.CustomMetadata();
             objMd.fullName = 'missionsf__UHT_Tracked_Object__mdt.' + sanitizeForMetadata(objectApiName);
-            objMd.label = objectApiName;
+            objMd.label = getMetadataLabel(objectApiName);
 
             Metadata.CustomMetadataValue objApiNameValue = new Metadata.CustomMetadataValue();
             objApiNameValue.field = 'missionsf__ObjectApiName__c';
@@ -332,7 +332,7 @@ public with sharing class UHT_AdminController {
         for (String objectApiName : objectsToDeactivate) {
             Metadata.CustomMetadata objMd = new Metadata.CustomMetadata();
             objMd.fullName = 'missionsf__UHT_Tracked_Object__mdt.' + sanitizeForMetadata(objectApiName);
-            objMd.label = objectApiName;
+            objMd.label = getMetadataLabel(objectApiName);
 
             Metadata.CustomMetadataValue objApiNameValue = new Metadata.CustomMetadataValue();
             objApiNameValue.field = 'missionsf__ObjectApiName__c';
@@ -354,7 +354,7 @@ public with sharing class UHT_AdminController {
                 Metadata.CustomMetadata fieldMd = new Metadata.CustomMetadata();
                 fieldMd.fullName = 'missionsf__UHT_Tracked_Field__mdt.' + 
                     sanitizeForMetadata(objectApiName) + '_' + sanitizeForMetadata(fieldApiName);
-                fieldMd.label = objectApiName + '.' + fieldApiName;
+                fieldMd.label = getMetadataLabel(objectApiName) + ' ' + getMetadataLabel(fieldApiName);
 
                 Metadata.CustomMetadataValue fieldObjValue = new Metadata.CustomMetadataValue();
                 fieldObjValue.field = 'missionsf__ObjectApiName__c';
@@ -382,7 +382,7 @@ public with sharing class UHT_AdminController {
                 Metadata.CustomMetadata fieldMd = new Metadata.CustomMetadata();
                 fieldMd.fullName = 'missionsf__UHT_Tracked_Field__mdt.' + 
                     sanitizeForMetadata(objectApiName) + '_' + sanitizeForMetadata(fieldApiName);
-                fieldMd.label = objectApiName + '.' + fieldApiName;
+                fieldMd.label = getMetadataLabel(objectApiName) + ' ' + getMetadataLabel(fieldApiName);
 
                 Metadata.CustomMetadataValue fieldObjValue = new Metadata.CustomMetadataValue();
                 fieldObjValue.field = 'missionsf__ObjectApiName__c';
@@ -481,20 +481,67 @@ public with sharing class UHT_AdminController {
     }
 
     /**
-     * Sanitize a name for use as metadata developer name
-     * Replaces special characters and ensures valid format
+     * Sanitize an API name for use as metadata record Name
+     * Strips namespace prefix and __c suffix
+     * 
+     * Examples:
+     *   missionsf__Test_Object__c -> Test_Object
+     *   missionsf__Test__c -> Test
+     *   Account -> Account
+     *   Industry -> Industry
      */
     private static String sanitizeForMetadata(String input) {
         if (String.isBlank(input)) {
             return 'Unknown';
         }
-        // Replace __c, __r, etc. with underscores, remove other special chars
-        String sanitized = input.replaceAll('[^a-zA-Z0-9_]', '_');
-        // Ensure doesn't start with number
-        if (sanitized.substring(0, 1).isNumeric()) {
-            sanitized = 'X' + sanitized;
+        
+        String result = input.trim();
+        
+        // Step 1: Strip namespace prefix (e.g., missionsf__)
+        if (result.contains('__')) {
+            Integer idx = result.indexOf('__');
+            String beforeDouble = result.substring(0, idx);
+            // If it looks like a namespace (letters/numbers, starts with letter)
+            if (beforeDouble.isAlphanumeric() && beforeDouble.length() > 0 && beforeDouble.substring(0, 1).isAlpha()) {
+                result = result.substring(idx + 2);
+            }
         }
-        return sanitized;
+        
+        // Step 2: Strip __c, __r, __e, __x, __b suffixes
+        if (result.endsWith('__c') || result.endsWith('__r') || 
+            result.endsWith('__e') || result.endsWith('__x') || 
+            result.endsWith('__b')) {
+            result = result.substring(0, result.length() - 3);
+        } else if (result.endsWith('__mdt')) {
+            result = result.substring(0, result.length() - 5);
+        }
+        
+        // Step 3: Ensure doesn't start with number
+        if (result.length() > 0 && result.substring(0, 1).isNumeric()) {
+            result = 'X' + result;
+        }
+        
+        // Step 4: Truncate to 40 characters if needed
+        if (result.length() > 40) {
+            result = result.substring(0, 40);
+        }
+        
+        return String.isBlank(result) ? 'Unknown' : result;
+    }
+
+    /**
+     * Get the Label for a metadata record
+     * Converts the sanitized name to human-readable format
+     * 
+     * Examples:
+     *   missionsf__Test_Object__c -> Test Object
+     *   missionsf__Test__c -> Test
+     *   Account -> Account
+     *   Industry -> Industry
+     */
+    private static String getMetadataLabel(String input) {
+        String name = sanitizeForMetadata(input);
+        return name.replace('_', ' ');
     }
 
     // =========================================================================

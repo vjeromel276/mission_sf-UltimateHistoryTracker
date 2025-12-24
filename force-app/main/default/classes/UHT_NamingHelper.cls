@@ -1,17 +1,19 @@
 /**
  * UHT_NamingHelper
  * 
- * Centralized naming logic for CDC objects, events, and triggers.
+ * Utility class for CDC-related naming conventions.
  * Handles the naming convention differences between standard and custom objects.
  * 
  * Naming Conventions:
  *   Standard objects: Account -> AccountChangeEvent -> AccountChangeEventTrigger
- *   Custom objects:   MyObject__c -> MyObject__ChangeEvent -> MyObject__ChangeEventTrigger
+ *   Custom objects:   MyObject__c -> MyObject__ChangeEvent -> MyObjectChangeEventTrigger
+ *   Namespaced:       ns__MyObject__c -> ns__MyObject__ChangeEvent -> NsMyObjectChangeEventTrigger
  */
 public with sharing class UHT_NamingHelper {
 
     /**
      * Build the CDC ChangeEvent name for an object
+     * This must match the actual Salesforce platform event name
      * 
      * @param objectApiName The object API name (e.g., 'Account' or 'MyObject__c')
      * @return The ChangeEvent name (e.g., 'AccountChangeEvent' or 'MyObject__ChangeEvent')
@@ -32,22 +34,36 @@ public with sharing class UHT_NamingHelper {
 
     /**
      * Build the trigger name for a CDC ChangeEvent
+     * Trigger names cannot contain underscores, so we convert to PascalCase
      * 
-     * @param objectApiName The object API name (e.g., 'Account' or 'MyObject__c')
-     * @return The trigger name (e.g., 'AccountChangeEventTrigger' or 'MyObject__ChangeEventTrigger')
+     * @param objectApiName The object API name (e.g., 'Account' or 'missionsf__Test_Object__c')
+     * @return The trigger name (e.g., 'AccountChangeEventTrigger' or 'MissionsfTestObjectChangeEventTrigger')
      */
     public static String getTriggerName(String objectApiName) {
         if (String.isBlank(objectApiName)) {
             return null;
         }
 
-        // Custom objects: replace __c with __ChangeEventTrigger
-        if (objectApiName.endsWith('__c')) {
-            return objectApiName.removeEnd('__c') + '__ChangeEventTrigger';
+        String baseName = objectApiName.trim();
+        
+        // Remove __c suffix if present
+        if (baseName.endsWith('__c')) {
+            baseName = baseName.removeEnd('__c');
         }
-
-        // Standard objects: append ChangeEventTrigger
-        return objectApiName + 'ChangeEventTrigger';
+        
+        // Split by underscores (handles both _ and __)
+        List<String> parts = baseName.split('_+');
+        
+        // Convert each part to PascalCase and join
+        String triggerName = '';
+        for (String part : parts) {
+            if (String.isNotBlank(part)) {
+                triggerName += part.substring(0, 1).toUpperCase() + part.substring(1).toLowerCase();
+            }
+        }
+        
+        // Append ChangeEventTrigger
+        return triggerName + 'ChangeEventTrigger';
     }
 
     /**
