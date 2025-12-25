@@ -4,9 +4,9 @@
  * Routes CDC events to the appropriate handler.
  * Called by dynamically deployed CDC triggers.
  */
-public with sharing class UHT_CDC_Router {
+global with sharing class UHT_CDC_Router {
 
-    public static void route(List<SObject> events) {
+    global static void route(List<SObject> events) {
         if (events == null || events.isEmpty()) {
             return;
         }
