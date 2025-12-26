@@ -306,24 +306,22 @@ public with sharing class UHT_AdminController {
 
         // =========================================================================
         // STEP 2: Build and deploy custom metadata
-        // NOTE: Do NOT use namespace prefix on field references - Salesforce resolves
-        // them automatically when running inside a managed package context.
         // =========================================================================
         Metadata.DeployContainer container = new Metadata.DeployContainer();
 
         // Process objects to ACTIVATE
         for (String objectApiName : objectsToActivate) {
             Metadata.CustomMetadata objMd = new Metadata.CustomMetadata();
-            objMd.fullName = 'UHT_Tracked_Object__mdt.' + sanitizeForMetadata(objectApiName);
+            objMd.fullName = 'missionsf__UHT_Tracked_Object__mdt.' + sanitizeForMetadata(objectApiName);
             objMd.label = getMetadataLabel(objectApiName);
 
             Metadata.CustomMetadataValue objApiNameValue = new Metadata.CustomMetadataValue();
-            objApiNameValue.field = 'ObjectApiName__c';
+            objApiNameValue.field = 'missionsf__ObjectApiName__c';
             objApiNameValue.value = objectApiName;
             objMd.values.add(objApiNameValue);
 
             Metadata.CustomMetadataValue objActiveValue = new Metadata.CustomMetadataValue();
-            objActiveValue.field = 'IsActive__c';
+            objActiveValue.field = 'missionsf__IsActive__c';
             objActiveValue.value = true;
             objMd.values.add(objActiveValue);
 
@@ -333,16 +331,16 @@ public with sharing class UHT_AdminController {
         // Process objects to DEACTIVATE
         for (String objectApiName : objectsToDeactivate) {
             Metadata.CustomMetadata objMd = new Metadata.CustomMetadata();
-            objMd.fullName = 'UHT_Tracked_Object__mdt.' + sanitizeForMetadata(objectApiName);
+            objMd.fullName = 'missionsf__UHT_Tracked_Object__mdt.' + sanitizeForMetadata(objectApiName);
             objMd.label = getMetadataLabel(objectApiName);
 
             Metadata.CustomMetadataValue objApiNameValue = new Metadata.CustomMetadataValue();
-            objApiNameValue.field = 'ObjectApiName__c';
+            objApiNameValue.field = 'missionsf__ObjectApiName__c';
             objApiNameValue.value = objectApiName;
             objMd.values.add(objApiNameValue);
 
             Metadata.CustomMetadataValue objActiveValue = new Metadata.CustomMetadataValue();
-            objActiveValue.field = 'IsActive__c';
+            objActiveValue.field = 'missionsf__IsActive__c';
             objActiveValue.value = false;
             objMd.values.add(objActiveValue);
 
@@ -354,22 +352,22 @@ public with sharing class UHT_AdminController {
             List<String> fields = fieldsToActivate.get(objectApiName);
             for (String fieldApiName : fields) {
                 Metadata.CustomMetadata fieldMd = new Metadata.CustomMetadata();
-                fieldMd.fullName = 'UHT_Tracked_Field__mdt.' + 
+                fieldMd.fullName = 'missionsf__UHT_Tracked_Field__mdt.' + 
                     sanitizeForMetadata(objectApiName) + '_' + sanitizeForMetadata(fieldApiName);
                 fieldMd.label = getMetadataLabel(objectApiName) + ' ' + getMetadataLabel(fieldApiName);
 
                 Metadata.CustomMetadataValue fieldObjValue = new Metadata.CustomMetadataValue();
-                fieldObjValue.field = 'ObjectApiName__c';
+                fieldObjValue.field = 'missionsf__ObjectApiName__c';
                 fieldObjValue.value = objectApiName;
                 fieldMd.values.add(fieldObjValue);
 
                 Metadata.CustomMetadataValue fieldNameValue = new Metadata.CustomMetadataValue();
-                fieldNameValue.field = 'FieldApiName__c';
+                fieldNameValue.field = 'missionsf__FieldApiName__c';
                 fieldNameValue.value = fieldApiName;
                 fieldMd.values.add(fieldNameValue);
 
                 Metadata.CustomMetadataValue fieldActiveValue = new Metadata.CustomMetadataValue();
-                fieldActiveValue.field = 'IsActive__c';
+                fieldActiveValue.field = 'missionsf__IsActive__c';
                 fieldActiveValue.value = true;
                 fieldMd.values.add(fieldActiveValue);
 
@@ -382,22 +380,22 @@ public with sharing class UHT_AdminController {
             List<String> fields = fieldsToDeactivate.get(objectApiName);
             for (String fieldApiName : fields) {
                 Metadata.CustomMetadata fieldMd = new Metadata.CustomMetadata();
-                fieldMd.fullName = 'UHT_Tracked_Field__mdt.' + 
+                fieldMd.fullName = 'missionsf__UHT_Tracked_Field__mdt.' + 
                     sanitizeForMetadata(objectApiName) + '_' + sanitizeForMetadata(fieldApiName);
                 fieldMd.label = getMetadataLabel(objectApiName) + ' ' + getMetadataLabel(fieldApiName);
 
                 Metadata.CustomMetadataValue fieldObjValue = new Metadata.CustomMetadataValue();
-                fieldObjValue.field = 'ObjectApiName__c';
+                fieldObjValue.field = 'missionsf__ObjectApiName__c';
                 fieldObjValue.value = objectApiName;
                 fieldMd.values.add(fieldObjValue);
 
                 Metadata.CustomMetadataValue fieldNameValue = new Metadata.CustomMetadataValue();
-                fieldNameValue.field = 'FieldApiName__c';
+                fieldNameValue.field = 'missionsf__FieldApiName__c';
                 fieldNameValue.value = fieldApiName;
                 fieldMd.values.add(fieldNameValue);
 
                 Metadata.CustomMetadataValue fieldActiveValue = new Metadata.CustomMetadataValue();
-                fieldActiveValue.field = 'IsActive__c';
+                fieldActiveValue.field = 'missionsf__IsActive__c';
                 fieldActiveValue.value = false;
                 fieldMd.values.add(fieldActiveValue);
 
@@ -459,7 +457,7 @@ public with sharing class UHT_AdminController {
         for (missionsf__UHT_Tracked_Object__mdt obj : [
             SELECT missionsf__ObjectApiName__c 
             FROM missionsf__UHT_Tracked_Object__mdt 
-            WHERE IsActive__c = true
+            WHERE missionsf__IsActive__c = true
         ]) {
             names.add(obj.missionsf__ObjectApiName__c);
         }
@@ -475,7 +473,7 @@ public with sharing class UHT_AdminController {
             SELECT missionsf__FieldApiName__c 
             FROM missionsf__UHT_Tracked_Field__mdt 
             WHERE missionsf__ObjectApiName__c = :objectApiName
-              AND IsActive__c = true
+              AND missionsf__IsActive__c = true
         ]) {
             names.add(fld.missionsf__FieldApiName__c);
         }
