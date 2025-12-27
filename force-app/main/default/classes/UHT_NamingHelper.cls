@@ -101,4 +101,78 @@ public with sharing class UHT_NamingHelper {
     public static Boolean isCustomObject(String objectApiName) {
         return String.isNotBlank(objectApiName) && objectApiName.endsWith('__c');
     }
+
+    /**
+     * Extract the clean base name from a Salesforce API name (object or field)
+     * Strips namespace prefix and type suffix to get the user-defined name.
+     * 
+     * Uses the count of '__' occurrences to determine structure:
+     *   0 = Standard (no namespace, no suffix)     : Account → Account
+     *   1 = Simple custom (suffix only)            : Test__c → Test
+     *   1 = Custom with underscore (suffix only)   : My_Object__c → My_Object
+     *   2 = Namespaced (namespace + suffix)        : missionsf__Test__c → Test
+     *   2 = Namespaced with underscore             : missionsf__My_Object__c → My_Object
+     * 
+     * @param apiName The full API name (e.g., 'missionsf__My_Object__c' or 'Account')
+     * @return The clean base name (e.g., 'My_Object' or 'Account')
+     */
+    public static String getCleanBaseName(String apiName) {
+        if (String.isBlank(apiName)) {
+            return null;
+        }
+        
+        String name = apiName.trim();
+        
+        // Count occurrences of '__'
+        Integer doubleUnderscoreCount = 0;
+        Integer searchIndex = 0;
+        while ((searchIndex = name.indexOf('__', searchIndex)) != -1) {
+            doubleUnderscoreCount++;
+            searchIndex += 2; // Move past this '__'
+        }
+        
+        // Process based on count
+        if (doubleUnderscoreCount == 0) {
+            // Standard object/field: Account, Industry
+            return name;
+        } 
+        else if (doubleUnderscoreCount == 1) {
+            // Simple custom: Test__c → Test, My_Object__c → My_Object
+            // Just strip the suffix
+            Integer suffixIndex = name.lastIndexOf('__');
+            return name.substring(0, suffixIndex);
+        } 
+        else if (doubleUnderscoreCount == 2) {
+            // Namespaced: missionsf__Test__c → Test, missionsf__My_Object__c → My_Object
+            // Strip namespace prefix (first __) and suffix (last __)
+            Integer firstDouble = name.indexOf('__');
+            Integer lastDouble = name.lastIndexOf('__');
+            return name.substring(firstDouble + 2, lastDouble);
+        }
+        else {
+            // Unexpected pattern (3+ occurrences) - shouldn't happen with valid Salesforce names
+            // Fall back to returning as-is
+            return name;
+        }
+    }
+
+    /**
+     * Get a human-readable label from a Salesforce API name
+     * Converts the clean base name to a label by replacing underscores with spaces.
+     * 
+     * Examples:
+     *   missionsf__My_Object__c → My Object
+     *   Test__c → Test
+     *   Account → Account
+     * 
+     * @param apiName The full API name
+     * @return Human-readable label
+     */
+    public static String getCleanLabel(String apiName) {
+        String baseName = getCleanBaseName(apiName);
+        if (String.isBlank(baseName)) {
+            return null;
+        }
+        return baseName.replace('_', ' ');
+    }
 }
