@@ -7,61 +7,30 @@
 private class UHT_NamingHelper_Test {
 
     // =========================================================================
-    // getChangeEventName() Tests
-    // =========================================================================
-
-    @IsTest
-    static void testGetChangeEventName_StandardObject() {
-        System.assertEquals('AccountChangeEvent', UHT_NamingHelper.getChangeEventName('Account'));
-        System.assertEquals('ContactChangeEvent', UHT_NamingHelper.getChangeEventName('Contact'));
-        System.assertEquals('OpportunityChangeEvent', UHT_NamingHelper.getChangeEventName('Opportunity'));
-    }
-
-    @IsTest
-    static void testGetChangeEventName_CustomObject() {
-        System.assertEquals('MyObject__ChangeEvent', UHT_NamingHelper.getChangeEventName('MyObject__c'));
-        System.assertEquals('Invoice__ChangeEvent', UHT_NamingHelper.getChangeEventName('Invoice__c'));
-        System.assertEquals('Custom_Object__ChangeEvent', UHT_NamingHelper.getChangeEventName('Custom_Object__c'));
-    }
-
-    @IsTest
-    static void testGetChangeEventName_NamespacedObject() {
-        System.assertEquals('missionsf__Test_Object__ChangeEvent', UHT_NamingHelper.getChangeEventName('missionsf__Test_Object__c'));
-        System.assertEquals('ns__My_Custom__ChangeEvent', UHT_NamingHelper.getChangeEventName('ns__My_Custom__c'));
-    }
-
-    @IsTest
-    static void testGetChangeEventName_BlankInput() {
-        System.assertEquals(null, UHT_NamingHelper.getChangeEventName(null));
-        System.assertEquals(null, UHT_NamingHelper.getChangeEventName(''));
-        System.assertEquals(null, UHT_NamingHelper.getChangeEventName('   '));
-    }
-
-    // =========================================================================
     // getTriggerName() Tests
     // =========================================================================
 
     @IsTest
     static void testGetTriggerName_StandardObject() {
-        System.assertEquals('AccountChangeEventTrigger', UHT_NamingHelper.getTriggerName('Account'));
-        System.assertEquals('ContactChangeEventTrigger', UHT_NamingHelper.getTriggerName('Contact'));
-        System.assertEquals('OpportunityChangeEventTrigger', UHT_NamingHelper.getTriggerName('Opportunity'));
+        System.assertEquals('UHTAccountTrigger', UHT_NamingHelper.getTriggerName('Account'));
+        System.assertEquals('UHTContactTrigger', UHT_NamingHelper.getTriggerName('Contact'));
+        System.assertEquals('UHTOpportunityTrigger', UHT_NamingHelper.getTriggerName('Opportunity'));
     }
 
     @IsTest
     static void testGetTriggerName_CustomObject() {
         // Custom objects get PascalCase trigger names (no underscores)
         // Each word split by underscore gets: first letter uppercase, rest lowercase
-        System.assertEquals('MyobjectChangeEventTrigger', UHT_NamingHelper.getTriggerName('MyObject__c'));
-        System.assertEquals('InvoiceChangeEventTrigger', UHT_NamingHelper.getTriggerName('Invoice__c'));
-        System.assertEquals('CustomObjectChangeEventTrigger', UHT_NamingHelper.getTriggerName('Custom_Object__c'));
+        System.assertEquals('UHTMyobjectTrigger', UHT_NamingHelper.getTriggerName('MyObject__c'));
+        System.assertEquals('UHTInvoiceTrigger', UHT_NamingHelper.getTriggerName('Invoice__c'));
+        System.assertEquals('UHTCustomObjectTrigger', UHT_NamingHelper.getTriggerName('Custom_Object__c'));
     }
 
     @IsTest
     static void testGetTriggerName_NamespacedObject() {
         // Namespaced objects also get PascalCase trigger names
-        System.assertEquals('MissionsfTestObjectChangeEventTrigger', UHT_NamingHelper.getTriggerName('missionsf__Test_Object__c'));
-        System.assertEquals('NsMyCustomChangeEventTrigger', UHT_NamingHelper.getTriggerName('ns__My_Custom__c'));
+        System.assertEquals('UHTMissionsfTestObjectTrigger', UHT_NamingHelper.getTriggerName('missionsf__Test_Object__c'));
+        System.assertEquals('UHTNsMyCustomTrigger', UHT_NamingHelper.getTriggerName('ns__My_Custom__c'));
     }
 
     @IsTest
@@ -69,44 +38,6 @@ private class UHT_NamingHelper_Test {
         System.assertEquals(null, UHT_NamingHelper.getTriggerName(null));
         System.assertEquals(null, UHT_NamingHelper.getTriggerName(''));
         System.assertEquals(null, UHT_NamingHelper.getTriggerName('   '));
-    }
-
-    // =========================================================================
-    // getObjectApiName() Tests (Reverse Lookup)
-    // =========================================================================
-
-    @IsTest
-    static void testGetObjectApiName_StandardObject() {
-        System.assertEquals('Account', UHT_NamingHelper.getObjectApiName('AccountChangeEvent'));
-        System.assertEquals('Contact', UHT_NamingHelper.getObjectApiName('ContactChangeEvent'));
-        System.assertEquals('Opportunity', UHT_NamingHelper.getObjectApiName('OpportunityChangeEvent'));
-    }
-
-    @IsTest
-    static void testGetObjectApiName_CustomObject() {
-        System.assertEquals('MyObject__c', UHT_NamingHelper.getObjectApiName('MyObject__ChangeEvent'));
-        System.assertEquals('Invoice__c', UHT_NamingHelper.getObjectApiName('Invoice__ChangeEvent'));
-        System.assertEquals('Custom_Object__c', UHT_NamingHelper.getObjectApiName('Custom_Object__ChangeEvent'));
-    }
-
-    @IsTest
-    static void testGetObjectApiName_NamespacedObject() {
-        System.assertEquals('missionsf__Test_Object__c', UHT_NamingHelper.getObjectApiName('missionsf__Test_Object__ChangeEvent'));
-        System.assertEquals('ns__My_Custom__c', UHT_NamingHelper.getObjectApiName('ns__My_Custom__ChangeEvent'));
-    }
-
-    @IsTest
-    static void testGetObjectApiName_BlankInput() {
-        System.assertEquals(null, UHT_NamingHelper.getObjectApiName(null));
-        System.assertEquals(null, UHT_NamingHelper.getObjectApiName(''));
-        System.assertEquals(null, UHT_NamingHelper.getObjectApiName('   '));
-    }
-
-    @IsTest
-    static void testGetObjectApiName_NotChangeEvent() {
-        // If it doesn't match the pattern, return as-is
-        System.assertEquals('SomeRandomString', UHT_NamingHelper.getObjectApiName('SomeRandomString'));
-        System.assertEquals('Account', UHT_NamingHelper.getObjectApiName('Account'));
     }
 
     // =========================================================================
@@ -136,30 +67,85 @@ private class UHT_NamingHelper_Test {
     }
 
     // =========================================================================
-    // Round-Trip Tests (Verify forward and reverse are consistent)
+    // getCleanBaseName() Tests
     // =========================================================================
 
     @IsTest
-    static void testRoundTrip_StandardObject() {
-        String original = 'Account';
-        String changeEvent = UHT_NamingHelper.getChangeEventName(original);
-        String reversed = UHT_NamingHelper.getObjectApiName(changeEvent);
-        System.assertEquals(original, reversed, 'Round-trip failed for standard object');
+    static void testGetCleanBaseName_StandardObject() {
+        // Standard objects return as-is (no __ in name)
+        System.assertEquals('Account', UHT_NamingHelper.getCleanBaseName('Account'));
+        System.assertEquals('Contact', UHT_NamingHelper.getCleanBaseName('Contact'));
+        System.assertEquals('Opportunity', UHT_NamingHelper.getCleanBaseName('Opportunity'));
     }
 
     @IsTest
-    static void testRoundTrip_CustomObject() {
-        String original = 'MyObject__c';
-        String changeEvent = UHT_NamingHelper.getChangeEventName(original);
-        String reversed = UHT_NamingHelper.getObjectApiName(changeEvent);
-        System.assertEquals(original, reversed, 'Round-trip failed for custom object');
+    static void testGetCleanBaseName_CustomObject() {
+        // Custom objects: strip __c suffix
+        System.assertEquals('MyObject', UHT_NamingHelper.getCleanBaseName('MyObject__c'));
+        System.assertEquals('Invoice', UHT_NamingHelper.getCleanBaseName('Invoice__c'));
+        System.assertEquals('My_Object', UHT_NamingHelper.getCleanBaseName('My_Object__c'));
     }
 
     @IsTest
-    static void testRoundTrip_NamespacedObject() {
-        String original = 'missionsf__Test_Object__c';
-        String changeEvent = UHT_NamingHelper.getChangeEventName(original);
-        String reversed = UHT_NamingHelper.getObjectApiName(changeEvent);
-        System.assertEquals(original, reversed, 'Round-trip failed for namespaced object');
+    static void testGetCleanBaseName_NamespacedObject() {
+        // Namespaced objects: strip namespace prefix and __c suffix
+        System.assertEquals('Test_Object', UHT_NamingHelper.getCleanBaseName('missionsf__Test_Object__c'));
+        System.assertEquals('Test', UHT_NamingHelper.getCleanBaseName('missionsf__Test__c'));
+        System.assertEquals('My_Custom', UHT_NamingHelper.getCleanBaseName('ns__My_Custom__c'));
+    }
+
+    @IsTest
+    static void testGetCleanBaseName_StandardField() {
+        // Standard fields return as-is
+        System.assertEquals('Industry', UHT_NamingHelper.getCleanBaseName('Industry'));
+        System.assertEquals('Name', UHT_NamingHelper.getCleanBaseName('Name'));
+    }
+
+    @IsTest
+    static void testGetCleanBaseName_CustomField() {
+        // Custom fields: strip __c suffix
+        System.assertEquals('My_Field', UHT_NamingHelper.getCleanBaseName('My_Field__c'));
+        System.assertEquals('Status', UHT_NamingHelper.getCleanBaseName('Status__c'));
+    }
+
+    @IsTest
+    static void testGetCleanBaseName_BlankInput() {
+        System.assertEquals(null, UHT_NamingHelper.getCleanBaseName(null));
+        System.assertEquals(null, UHT_NamingHelper.getCleanBaseName(''));
+        System.assertEquals(null, UHT_NamingHelper.getCleanBaseName('   '));
+    }
+
+    // =========================================================================
+    // getCleanLabel() Tests
+    // =========================================================================
+
+    @IsTest
+    static void testGetCleanLabel_StandardObject() {
+        // Standard objects return as-is
+        System.assertEquals('Account', UHT_NamingHelper.getCleanLabel('Account'));
+        System.assertEquals('Contact', UHT_NamingHelper.getCleanLabel('Contact'));
+    }
+
+    @IsTest
+    static void testGetCleanLabel_CustomObject() {
+        // Custom objects: strip __c and replace _ with space
+        System.assertEquals('MyObject', UHT_NamingHelper.getCleanLabel('MyObject__c'));
+        System.assertEquals('My Object', UHT_NamingHelper.getCleanLabel('My_Object__c'));
+        System.assertEquals('Custom Object', UHT_NamingHelper.getCleanLabel('Custom_Object__c'));
+    }
+
+    @IsTest
+    static void testGetCleanLabel_NamespacedObject() {
+        // Namespaced objects: strip namespace and suffix, replace _ with space
+        System.assertEquals('Test Object', UHT_NamingHelper.getCleanLabel('missionsf__Test_Object__c'));
+        System.assertEquals('Test', UHT_NamingHelper.getCleanLabel('missionsf__Test__c'));
+        System.assertEquals('My Custom', UHT_NamingHelper.getCleanLabel('ns__My_Custom__c'));
+    }
+
+    @IsTest
+    static void testGetCleanLabel_BlankInput() {
+        System.assertEquals(null, UHT_NamingHelper.getCleanLabel(null));
+        System.assertEquals(null, UHT_NamingHelper.getCleanLabel(''));
+        System.assertEquals(null, UHT_NamingHelper.getCleanLabel('   '));
     }
 }

@@ -1,43 +1,24 @@
 /**
  * UHT_NamingHelper
  * 
- * Utility class for CDC-related naming conventions.
+ * Utility class for UHT naming conventions.
  * Handles the naming convention differences between standard and custom objects.
  * 
- * Naming Conventions:
- *   Standard objects: Account -> AccountChangeEvent -> AccountChangeEventTrigger
- *   Custom objects:   MyObject__c -> MyObject__ChangeEvent -> MyObjectChangeEventTrigger
- *   Namespaced:       ns__MyObject__c -> ns__MyObject__ChangeEvent -> NsMyObjectChangeEventTrigger
+ * Trigger Naming Conventions:
+ *   Standard objects: Account -> UHTAccountTrigger
+ *   Custom objects:   MyObject__c -> UHTMyObjectTrigger
+ *   Custom with underscore: My_Object__c -> UHTMyObjectTrigger
+ *   Namespaced:       ns__MyObject__c -> UHTNsMyObjectTrigger
  */
 public with sharing class UHT_NamingHelper {
 
     /**
-     * Build the CDC ChangeEvent name for an object
-     * This must match the actual Salesforce platform event name
-     * 
-     * @param objectApiName The object API name (e.g., 'Account' or 'MyObject__c')
-     * @return The ChangeEvent name (e.g., 'AccountChangeEvent' or 'MyObject__ChangeEvent')
-     */
-    public static String getChangeEventName(String objectApiName) {
-        if (String.isBlank(objectApiName)) {
-            return null;
-        }
-
-        // Custom objects: replace __c with __ChangeEvent
-        if (objectApiName.endsWith('__c')) {
-            return objectApiName.removeEnd('__c') + '__ChangeEvent';
-        }
-
-        // Standard objects: append ChangeEvent
-        return objectApiName + 'ChangeEvent';
-    }
-
-    /**
-     * Build the trigger name for a CDC ChangeEvent
+     * Build the UHT trigger name for an object.
      * Trigger names cannot contain underscores, so we convert to PascalCase
+     * and prefix with 'UHT' to avoid naming collisions in customer orgs.
      * 
      * @param objectApiName The object API name (e.g., 'Account' or 'missionsf__Test_Object__c')
-     * @return The trigger name (e.g., 'AccountChangeEventTrigger' or 'MissionsfTestObjectChangeEventTrigger')
+     * @return The trigger name (e.g., 'UHTAccountTrigger' or 'UHTMissionsfTestObjectTrigger')
      */
     public static String getTriggerName(String objectApiName) {
         if (String.isBlank(objectApiName)) {
@@ -62,34 +43,8 @@ public with sharing class UHT_NamingHelper {
             }
         }
         
-        // Append ChangeEventTrigger
-        return triggerName + 'ChangeEventTrigger';
-    }
-
-    /**
-     * Extract the object API name from a ChangeEvent type name
-     * This is the reverse of getChangeEventName()
-     * 
-     * @param changeEventName The ChangeEvent name (e.g., 'AccountChangeEvent' or 'MyObject__ChangeEvent')
-     * @return The object API name (e.g., 'Account' or 'MyObject__c')
-     */
-    public static String getObjectApiName(String changeEventName) {
-        if (String.isBlank(changeEventName)) {
-            return null;
-        }
-
-        // Custom objects: __ChangeEvent -> __c
-        if (changeEventName.endsWith('__ChangeEvent')) {
-            return changeEventName.removeEnd('__ChangeEvent') + '__c';
-        }
-
-        // Standard objects: remove ChangeEvent suffix
-        if (changeEventName.endsWith('ChangeEvent')) {
-            return changeEventName.removeEnd('ChangeEvent');
-        }
-
-        // Not a recognized ChangeEvent name, return as-is
-        return changeEventName;
+        // Prefix with UHT and append Trigger
+        return 'UHT' + triggerName + 'Trigger';
     }
 
     /**

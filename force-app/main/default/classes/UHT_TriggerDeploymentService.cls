@@ -1,7 +1,7 @@
 /**
  * UHT_TriggerDeploymentService
  * 
- * Orchestrates the deployment of CDC triggers to subscriber orgs via Metadata API.
+ * Orchestrates the deployment of triggers to subscriber orgs via Metadata API.
  * 
  * Dependencies:
  *   - Zippex (https://github.com/pdalcol/Zippex)
@@ -15,7 +15,7 @@ public with sharing class UHT_TriggerDeploymentService {
     private static final String API_VERSION = '65.0';
 
     /**
-     * Deploy a CDC trigger for the specified object
+     * Deploy a trigger for the specified object
      * Must be called from synchronous context (UserInfo.getSessionId() returns null in async)
      * 
      * @param objectApiName The object to create a trigger for (e.g., 'Contact')
@@ -153,7 +153,7 @@ public with sharing class UHT_TriggerDeploymentService {
         deployOptions.rollbackOnError = true;
         deployOptions.runTests = new String[]{};
         deployOptions.singlePackage = true;
-        deployOptions.testLevel = 'NoTestRun'; // For CDC triggers, tests run separately
+        deployOptions.testLevel = 'NoTestRun'; // For triggers, tests run separately
 
         // Deploy
         MetadataService.AsyncResult result = service.deploy(
@@ -208,7 +208,7 @@ public with sharing class UHT_TriggerDeploymentService {
     }
 
         /**
-     * Deploy a CDC trigger with provided session ID
+     * Deploy a trigger with provided session ID
      * Used when session ID is obtained externally (e.g., from Named Credential context)
      */
     public static Id deployTriggerWithSession(String objectApiName, String sessionId) {

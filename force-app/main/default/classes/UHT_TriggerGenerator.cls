@@ -1,7 +1,7 @@
 /**
  * UHT_TriggerGenerator
  * 
- * Generates CDC trigger source code and metadata for deployment.
+ * Generates trigger source code and metadata for deployment.
  */
 public with sharing class UHT_TriggerGenerator {
 
@@ -19,7 +19,7 @@ public with sharing class UHT_TriggerGenerator {
 
     private static final String API_VERSION = '65.0';
 
-    // Namespace prefix for packaged router class
+    // Namespace prefix for packaged handler class
     private static final String NAMESPACE = 'missionsf';
 
     /**
@@ -36,9 +36,8 @@ public with sharing class UHT_TriggerGenerator {
         objectApiName = objectApiName.trim();
 
         String triggerName = UHT_NamingHelper.getTriggerName(objectApiName);
-        String changeEventName = UHT_NamingHelper.getChangeEventName(objectApiName);
 
-        String triggerCode = generateTriggerCode(triggerName, changeEventName);
+        String triggerCode = generateTriggerCode(triggerName, objectApiName);
         String metaXml = generateMetaXml();
 
         return new TriggerFiles(triggerName, triggerCode, metaXml);
@@ -47,9 +46,9 @@ public with sharing class UHT_TriggerGenerator {
     /**
      * Generate the trigger source code
      */
-    private static String generateTriggerCode(String triggerName, String changeEventName) {
-        String triggerCode = 'trigger ' + triggerName + ' on ' + changeEventName + ' (after insert) {\n'
-             + '    ' + NAMESPACE + '.UHT_CDC_Router.route(Trigger.new);\n'
+    private static String generateTriggerCode(String triggerName, String objectApiName) {
+        String triggerCode = 'trigger ' + triggerName + ' on ' + objectApiName + ' (after update) {\n'
+             + '    ' + NAMESPACE + '.UHT_TriggerHandler.handleAfterUpdate(\'' + objectApiName + '\', Trigger.new, Trigger.oldMap);\n'
              + '}';
         System.debug('Generated trigger code:\\n' + triggerCode);
         return triggerCode;
