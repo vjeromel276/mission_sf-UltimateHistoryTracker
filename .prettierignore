@@ -9,3 +9,6 @@
 .vscode
 
 coverage/
+
+# Third-party auto-generated files (formatting causes 4x size bloat)
+**/MetadataService.cls
