@@ -39,11 +39,12 @@ global with sharing class UHT_ChangeLogWriter {
     List<missionsf__UHT_Change_Log__c> logs = createLogRecords(changes);
 
     if (!logs.isEmpty()) {
-      // Use Database.insert for partial success handling with CRUD/FLS enforcement
+      // Use SYSTEM_MODE for package-internal Change_Log object
+      // Users shouldn't need explicit CRUD permissions on internal audit records
       Database.SaveResult[] results = Database.insert(
         logs,
         false,
-        AccessLevel.USER_MODE
+        AccessLevel.SYSTEM_MODE
       );
 
       for (Integer i = 0; i < results.size(); i++) {
@@ -189,10 +190,11 @@ global with sharing class UHT_ChangeLogWriter {
         List<missionsf__UHT_Change_Log__c> logs = createLogRecords(changes);
 
         if (!logs.isEmpty()) {
+          // Use SYSTEM_MODE for package-internal Change_Log object
           Database.SaveResult[] results = Database.insert(
             logs,
             false,
-            AccessLevel.USER_MODE
+            AccessLevel.SYSTEM_MODE
           );
 
           Integer successCount = 0;
