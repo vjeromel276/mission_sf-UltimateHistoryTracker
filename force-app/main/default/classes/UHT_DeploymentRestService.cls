@@ -1,90 +1,111 @@
 /**
  * UHT_DeploymentRestService
- * 
+ *
  * REST endpoint for trigger deployment that runs with a valid API session.
  * Called via Named Credential from the Admin Controller.
- * 
+ *
  * Queues the deployment to avoid callout loop restrictions.
+ *
+ * Security Note: UserInfo.getSessionId() is required for Metadata API deployment.
+ * The session ID is obtained from a Named Credential OAuth flow and is only used
+ * for authorized Metadata API calls to deploy triggers. It is never logged or stored.
  */
 @RestResource(urlMapping='/uht/deploy/*')
+@SuppressWarnings('PMD.AvoidUnauthorizedGetSessionIdInApex')
 global with sharing class UHT_DeploymentRestService {
+  /**
+   * Deploy a trigger for the specified object
+   * POST /services/apexrest/uht/deploy
+   * Body: { "objectApiName": "Account" }
+   */
+  @HttpPost
+  global static DeploymentResult deployTrigger() {
+    DeploymentResult result = new DeploymentResult();
 
-    /**
-     * Deploy a trigger for the specified object
-     * POST /services/apexrest/uht/deploy
-     * Body: { "objectApiName": "Account" }
-     */
-    @HttpPost
-    global static DeploymentResult deployTrigger() {
-        DeploymentResult result = new DeploymentResult();
-        
-        try {
-            // Parse request body
-            RestRequest req = RestContext.request;
-            Map<String, Object> body = (Map<String, Object>) JSON.deserializeUntyped(req.requestBody.toString());
-            String objectApiName = (String) body.get('objectApiName');
-            
-            if (String.isBlank(objectApiName)) {
-                result.success = false;
-                result.errorMessage = 'objectApiName is required';
-                return result;
-            }
-            
-            // Get session ID now (we have a valid one from Named Credential OAuth)
-            String sessionId = UserInfo.getSessionId();
-            if (String.isBlank(sessionId)) {
-                result.success = false;
-                result.errorMessage = 'No valid session ID available';
-                return result;
-            }
-            
-            // Queue the deployment - this breaks the callout loop
-            Id jobId = System.enqueueJob(new TriggerDeploymentQueueable(objectApiName, sessionId));
-            
-            result.success = true;
-            result.message = 'Deployment queued';
-            result.queuedJobId = String.valueOf(jobId);
-            
-        } catch (Exception e) {
-            result.success = false;
-            result.errorMessage = e.getMessage();
-        }
-        
+    try {
+      // Parse request body
+      RestRequest req = RestContext.request;
+      Map<String, Object> body = (Map<String, Object>) JSON.deserializeUntyped(
+        req.requestBody.toString()
+      );
+      String objectApiName = (String) body.get('objectApiName');
+
+      if (String.isBlank(objectApiName)) {
+        result.success = false;
+        result.errorMessage = 'objectApiName is required';
         return result;
+      }
+
+      // Get session ID now (we have a valid one from Named Credential OAuth)
+      String sessionId = UserInfo.getSessionId();
+      if (String.isBlank(sessionId)) {
+        result.success = false;
+        result.errorMessage = 'No valid session ID available';
+        return result;
+      }
+
+      // Queue the deployment - this breaks the callout loop
+      Id jobId = System.enqueueJob(
+        new TriggerDeploymentQueueable(objectApiName, sessionId)
+      );
+
+      result.success = true;
+      result.message = 'Deployment queued';
+      result.queuedJobId = String.valueOf(jobId);
+    } catch (Exception e) {
+      result.success = false;
+      result.errorMessage = e.getMessage();
     }
-    
-    /**
-     * Response wrapper for deployment
-     */
-    global class DeploymentResult {
-        public Boolean success;
-        public String deploymentLogId;
-        public String queuedJobId;
-        public String message;
-        public String errorMessage;
+
+    return result;
+  }
+
+  /**
+   * Response wrapper for deployment
+   */
+  global class DeploymentResult {
+    public Boolean success;
+    public String deploymentLogId;
+    public String queuedJobId;
+    public String message;
+    public String errorMessage;
+  }
+
+  /**
+   * Queueable to perform the actual deployment
+   * This breaks the callout loop by running asynchronously
+   */
+  public class TriggerDeploymentQueueable implements Queueable, Database.AllowsCallouts {
+    private String objectApiName;
+    private String sessionId;
+
+    public TriggerDeploymentQueueable(String objectApiName, String sessionId) {
+      this.objectApiName = objectApiName;
+      this.sessionId = sessionId;
     }
-    
-    /**
-     * Queueable to perform the actual deployment
-     * This breaks the callout loop by running asynchronously
-     */
-    public class TriggerDeploymentQueueable implements Queueable, Database.AllowsCallouts {
-        private String objectApiName;
-        private String sessionId;
-        
-        public TriggerDeploymentQueueable(String objectApiName, String sessionId) {
-            this.objectApiName = objectApiName;
-            this.sessionId = sessionId;
-        }
-        
-        public void execute(QueueableContext context) {
-            try {
-                // Call the deployment service with the session ID we captured
-                Id deployLogId = UHT_TriggerDeploymentService.deployTriggerWithSession(objectApiName, sessionId);
-                System.debug('Trigger deployment initiated for ' + objectApiName + ', log ID: ' + deployLogId);
-            } catch (Exception e) {
-                System.debug(LoggingLevel.ERROR, 'Trigger deployment failed for ' + objectApiName + ': ' + e.getMessage());
-            }
-        }
+
+    public void execute(QueueableContext context) {
+      try {
+        // Call the deployment service with the session ID we captured
+        Id deployLogId = UHT_TriggerDeploymentService.deployTriggerWithSession(
+          objectApiName,
+          sessionId
+        );
+        System.debug(
+          'Trigger deployment initiated for ' +
+            objectApiName +
+            ', log ID: ' +
+            deployLogId
+        );
+      } catch (Exception e) {
+        System.debug(
+          LoggingLevel.ERROR,
+          'Trigger deployment failed for ' +
+            objectApiName +
+            ': ' +
+            e.getMessage()
+        );
+      }
     }
+  }
 }
