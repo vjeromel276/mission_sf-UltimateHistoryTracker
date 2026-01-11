@@ -544,6 +544,7 @@ public with sharing class UHT_AdminController {
       SELECT missionsf__ObjectApiName__c
       FROM missionsf__UHT_Tracked_Object__mdt
       WHERE missionsf__IsActive__c = TRUE
+      WITH USER_MODE
     ]) {
       names.add(obj.missionsf__ObjectApiName__c);
     }
@@ -561,6 +562,7 @@ public with sharing class UHT_AdminController {
       WHERE
         missionsf__ObjectApiName__c = :objectApiName
         AND missionsf__IsActive__c = TRUE
+      WITH USER_MODE
     ]) {
       names.add(fld.missionsf__FieldApiName__c);
     }

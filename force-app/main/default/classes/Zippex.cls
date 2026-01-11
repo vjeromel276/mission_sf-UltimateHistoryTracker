@@ -10,7 +10,7 @@
  * These are false positives from the security scanner.
  */
 @SuppressWarnings('PMD.AvoidHardcodedCredentialsInFieldDecls')
-public class Zippex {
+public with sharing class Zippex {
   private Map<String, FileObject> zipFileMap = new Map<String, FileObject>{};
   protected String zipFileString = ''; // stores the Hex version of the file blob
 
@@ -83,6 +83,7 @@ public class Zippex {
       SELECT ParentId, Body
       FROM Attachment
       WHERE Id = :srcAttId
+      WITH USER_MODE
     ];
     Attachment[] Atts = new List<Attachment>();
 
@@ -113,7 +114,7 @@ public class Zippex {
       //    Atts.clear();
       //}
     }
-    insert Atts;
+    Database.insert(Atts, AccessLevel.USER_MODE);
   }
   @future
   private static void unzipAttachmentAsync(
