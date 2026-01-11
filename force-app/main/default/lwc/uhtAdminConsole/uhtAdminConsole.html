@@ -35,8 +35,7 @@
                 <div class="slds-box slds-box_x-small slds-theme_info slds-m-bottom_medium">
                     <p class="slds-text-body_small">
                         <lightning-icon icon-name="utility:info" size="x-small" class="slds-m-right_x-small"></lightning-icon>
-                        Select objects and fields to track. "CDC Capable" means the object supports Change Data Capture. 
-                        <strong>You must enable CDC in Setup → Change Data Capture</strong> for each object before tracking will work.
+                        Select objects and fields to track. When you save, UHT will deploy triggers to capture field changes.
                     </p>
                 </div>
 
@@ -72,27 +71,13 @@
                                 </div>
 
                                 <!-- Object label and API name -->
-                                <div class="slds-col slds-size_6-of-12">
+                                <div class="slds-col slds-size_7-of-12">
                                     <span class="object-label">{obj.label}</span>
                                     <span class="object-api-name slds-m-left_x-small">({obj.apiName})</span>
                                 </div>
 
-                                <!-- CDC Status and badges -->
-                                <div class="slds-col slds-size_4-of-12 slds-text-align_right">
-                                    <!-- CDC Capability indicator -->
-                                    <template if:true={obj.cdcEnabled}>
-                                        <span class="cdc-status cdc-enabled" title="CDC Capable - Verify enabled in Setup">
-                                            <lightning-icon icon-name="utility:success" size="x-small" variant="success"></lightning-icon>
-                                            <span class="slds-m-left_xx-small">CDC Capable</span>
-                                        </span>
-                                    </template>
-                                    <template if:false={obj.cdcEnabled}>
-                                        <span class="cdc-status cdc-disabled" title="Not CDC Capable">
-                                            <lightning-icon icon-name="utility:close" size="x-small" variant="error"></lightning-icon>
-                                            <span class="slds-m-left_xx-small">No CDC</span>
-                                        </span>
-                                    </template>
-                                    
+                                <!-- Badges -->
+                                <div class="slds-col slds-size_3-of-12 slds-text-align_right">
                                     <!-- Custom object badge -->
                                     <template if:true={obj.isCustom}>
                                         <lightning-badge label="Custom" class="slds-m-left_x-small"></lightning-badge>
@@ -166,7 +151,7 @@
                 <template if:false={objects.length}>
                     <div class="slds-illustration slds-illustration_small slds-p-around_large">
                         <p class="slds-text-body_regular slds-text-color_weak">
-                            No CDC-capable objects found.
+                            No trackable objects found.
                         </p>
                     </div>
                 </template>

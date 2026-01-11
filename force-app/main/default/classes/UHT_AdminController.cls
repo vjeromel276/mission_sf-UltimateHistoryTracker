@@ -3,9 +3,8 @@
  * 
  * Apex controller for the UHT Admin Console LWC.
  * Provides methods to:
- *   - List available objects for CDC tracking
+ *   - List available objects for tracking
  *   - Get fields for a given object
- *   - Check CDC enablement status
  *   - Load/save tracking configuration
  */
 public with sharing class UHT_AdminController {
@@ -20,14 +19,12 @@ public with sharing class UHT_AdminController {
     public class ObjectInfo {
         @AuraEnabled public String apiName;
         @AuraEnabled public String label;
-        @AuraEnabled public Boolean cdcEnabled;
         @AuraEnabled public Boolean isTracked;
         @AuraEnabled public Boolean isCustom;
 
-        public ObjectInfo(String apiName, String label, Boolean cdcEnabled, Boolean isTracked, Boolean isCustom) {
+        public ObjectInfo(String apiName, String label, Boolean isTracked, Boolean isCustom) {
             this.apiName = apiName;
             this.label = label;
-            this.cdcEnabled = cdcEnabled;
             this.isTracked = isTracked;
             this.isCustom = isCustom;
         }
@@ -69,9 +66,7 @@ public with sharing class UHT_AdminController {
 
     /**
      * Get all available objects that could potentially be tracked.
-     * Returns standard objects known to support CDC + all custom objects.
-     * CDC status shows capability (whether the object supports CDC), not actual enablement.
-     * Users should verify CDC is enabled in Setup before tracking.
+     * Returns standard objects commonly used + all custom objects.
      */
     @AuraEnabled
     public static List<ObjectInfo> getAvailableObjects() {
@@ -81,8 +76,8 @@ public with sharing class UHT_AdminController {
         List<ObjectInfo> results = new List<ObjectInfo>();
         Map<String, Schema.SObjectType> globalDescribe = Schema.getGlobalDescribe();
 
-        // Standard objects that commonly support CDC (lowercase for comparison)
-        Set<String> cdcCapableStandardObjects = new Set<String>{
+        // Standard objects commonly tracked (lowercase for comparison)
+        Set<String> trackableStandardObjects = new Set<String>{
             'account', 'contact', 'lead', 'opportunity', 'case', 'task', 'event',
             'campaign', 'campaignmember', 'contract', 'order', 'orderitem',
             'product2', 'pricebook2', 'pricebookentry', 'asset', 'quote',
@@ -102,7 +97,7 @@ public with sharing class UHT_AdminController {
             Boolean isCustom = dsr.isCustom();
             Boolean includeObject = false;
 
-            // Include custom objects (they can have CDC enabled)
+            // Include custom objects (excluding special types)
             if (isCustom && !objName.endsWithIgnoreCase('__mdt') && 
                 !objName.endsWithIgnoreCase('__e') && 
                 !objName.endsWithIgnoreCase('__x') &&
@@ -112,22 +107,19 @@ public with sharing class UHT_AdminController {
                 includeObject = true;
             }
 
-            // Include known CDC-capable standard objects (compare lowercase)
-            if (!isCustom && cdcCapableStandardObjects.contains(objName.toLowerCase())) {
+            // Include known trackable standard objects (compare lowercase)
+            if (!isCustom && trackableStandardObjects.contains(objName.toLowerCase())) {
                 includeObject = true;
             }
 
             if (includeObject) {
                 // Use the proper API name from describe (preserves correct casing)
                 String properApiName = dsr.getName();
-                // Check CDC capability via Schema (not actual enablement)
-                Boolean cdcCapable = UHT_CDC_Availability.isEnabledForObject(properApiName);
                 Boolean isTracked = trackedObjectNames.contains(properApiName);
 
                 results.add(new ObjectInfo(
                     properApiName,
                     dsr.getLabel(),
-                    cdcCapable,  // This indicates capability, not actual enablement
                     isTracked,
                     isCustom
                 ));
@@ -166,7 +158,7 @@ public with sharing class UHT_AdminController {
 
         Map<String, Schema.SObjectField> fieldsMap = sot.getDescribe().fields.getMap();
 
-        // Field types that can be tracked via CDC
+        // Field types that can be tracked
         Set<Schema.DisplayType> trackableTypes = new Set<Schema.DisplayType>{
             Schema.DisplayType.STRING,
             Schema.DisplayType.TEXTAREA,
@@ -201,7 +193,7 @@ public with sharing class UHT_AdminController {
                 continue;
             }
 
-            // Skip formula fields (CDC doesn't capture them)
+            // Skip formula fields (triggers don't capture them)
             if (dfr.isCalculated()) {
                 continue;
             }
@@ -233,14 +225,6 @@ public with sharing class UHT_AdminController {
     }
 
     /**
-     * Check if CDC is enabled for a specific object.
-     */
-    @AuraEnabled(cacheable=true)
-    public static Boolean isCDCEnabled(String objectApiName) {
-        return UHT_CDC_Availability.isEnabledForObject(objectApiName);
-    }
-
-    /**
      * Get the complete tracking configuration (objects + fields).
      */
     @AuraEnabled(cacheable=true)
@@ -252,7 +236,7 @@ public with sharing class UHT_AdminController {
 
         // Pre-load fields for tracked objects only (performance optimization)
         for (ObjectInfo obj : config.objects) {
-            if (obj.isTracked || obj.cdcEnabled) {
+            if (obj.isTracked) {
                 config.fieldsByObject.put(obj.apiName, getObjectFields(obj.apiName));
             }
         }
@@ -263,7 +247,7 @@ public with sharing class UHT_AdminController {
     /**
      * Save tracking configuration using delta approach.
      * Activates newly selected items, deactivates removed items.
-     * Also deploys CDC triggers for newly activated objects via Named Credential.
+     * Also deploys triggers for newly activated objects via Named Credential.
      * 
      * @param objectsToActivate List of object API names to activate
      * @param objectsToDeactivate List of object API names to deactivate
@@ -347,9 +331,13 @@ public with sharing class UHT_AdminController {
             container.addMetadata(objMd);
         }
 
-        // Process fields to ACTIVATE
+        // Process fields to ACTIVATE (with FieldType__c)
         for (String objectApiName : fieldsToActivate.keySet()) {
             List<String> fields = fieldsToActivate.get(objectApiName);
+            
+            // Get field types from Schema
+            Map<String, String> fieldTypes = getFieldTypes(objectApiName, fields);
+            
             for (String fieldApiName : fields) {
                 Metadata.CustomMetadata fieldMd = new Metadata.CustomMetadata();
                 fieldMd.fullName = 'missionsf__UHT_Tracked_Field__mdt.' + 
@@ -370,6 +358,12 @@ public with sharing class UHT_AdminController {
                 fieldActiveValue.field = 'missionsf__IsActive__c';
                 fieldActiveValue.value = true;
                 fieldMd.values.add(fieldActiveValue);
+
+                // Add FieldType__c
+                Metadata.CustomMetadataValue fieldTypeValue = new Metadata.CustomMetadataValue();
+                fieldTypeValue.field = 'missionsf__FieldType__c';
+                fieldTypeValue.value = fieldTypes.get(fieldApiName);
+                fieldMd.values.add(fieldTypeValue);
 
                 container.addMetadata(fieldMd);
             }
@@ -478,6 +472,36 @@ public with sharing class UHT_AdminController {
             names.add(fld.missionsf__FieldApiName__c);
         }
         return names;
+    }
+
+    /**
+     * Get field types from Schema for a list of fields on an object
+     */
+    private static Map<String, String> getFieldTypes(String objectApiName, List<String> fieldApiNames) {
+        Map<String, String> fieldTypes = new Map<String, String>();
+        
+        Schema.SObjectType sot = Schema.getGlobalDescribe().get(objectApiName);
+        if (sot == null) {
+            sot = Schema.getGlobalDescribe().get(objectApiName.toLowerCase());
+        }
+        if (sot == null) {
+            // Return empty map if object not found
+            return fieldTypes;
+        }
+        
+        Map<String, Schema.SObjectField> fieldsMap = sot.getDescribe().fields.getMap();
+        
+        for (String fieldApiName : fieldApiNames) {
+            Schema.SObjectField field = fieldsMap.get(fieldApiName);
+            if (field == null) {
+                field = fieldsMap.get(fieldApiName.toLowerCase());
+            }
+            if (field != null) {
+                fieldTypes.put(fieldApiName, field.getDescribe().getType().name());
+            }
+        }
+        
+        return fieldTypes;
     }
 
     /**
