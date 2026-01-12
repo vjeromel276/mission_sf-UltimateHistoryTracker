@@ -125,7 +125,7 @@ private class UHT_TriggerDeploymentService_Test {
         missionsf__Deployment_Id__c
       FROM missionsf__UHT_Deployment_Log__c
       WHERE Id = :logId
-      WITH USER_MODE
+      WITH SYSTEM_MODE
     ];
 
     System.assertEquals(
@@ -257,7 +257,7 @@ private class UHT_TriggerDeploymentService_Test {
       SELECT missionsf__Trigger_Name__c
       FROM missionsf__UHT_Deployment_Log__c
       WHERE Id = :logId
-      WITH USER_MODE
+      WITH SYSTEM_MODE
     ];
 
     System.assertEquals(

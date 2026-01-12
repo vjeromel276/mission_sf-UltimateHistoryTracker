@@ -73,7 +73,7 @@ public with sharing class UHT_TriggerDeploymentService {
       missionsf__Deployment_Id__c = deploymentId,
       missionsf__Initiated_At__c = Datetime.now()
     );
-    Database.insert(logRecord, AccessLevel.USER_MODE);
+    Database.insert(logRecord, AccessLevel.SYSTEM_MODE);
 
     // Queue the status poller
     System.enqueueJob(
@@ -97,7 +97,7 @@ public with sharing class UHT_TriggerDeploymentService {
       WHERE
         missionsf__Object_Name__c = :objectApiName
         AND missionsf__Status__c = 'Success'
-      WITH USER_MODE
+      WITH SYSTEM_MODE
       LIMIT 1
     ];
 
@@ -219,7 +219,7 @@ public with sharing class UHT_TriggerDeploymentService {
         missionsf__Completed_At__c
       FROM missionsf__UHT_Deployment_Log__c
       WHERE Id = :logRecordId
-      WITH USER_MODE
+      WITH SYSTEM_MODE
       LIMIT 1
     ];
 
@@ -277,7 +277,7 @@ public with sharing class UHT_TriggerDeploymentService {
       missionsf__Deployment_Id__c = deploymentId,
       missionsf__Initiated_At__c = Datetime.now()
     );
-    Database.insert(logRecord, AccessLevel.USER_MODE);
+    Database.insert(logRecord, AccessLevel.SYSTEM_MODE);
 
     // Queue the status poller
     System.enqueueJob(

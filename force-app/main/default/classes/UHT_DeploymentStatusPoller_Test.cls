@@ -222,7 +222,7 @@ private class UHT_DeploymentStatusPoller_Test {
         missionsf__Error_Message__c
       FROM missionsf__UHT_Deployment_Log__c
       WHERE Id = :log.Id
-      WITH USER_MODE
+      WITH SYSTEM_MODE
     ];
 
     System.assertEquals(
@@ -269,7 +269,7 @@ private class UHT_DeploymentStatusPoller_Test {
         missionsf__Error_Message__c
       FROM missionsf__UHT_Deployment_Log__c
       WHERE Id = :log.Id
-      WITH USER_MODE
+      WITH SYSTEM_MODE
     ];
 
     System.assertEquals(
@@ -310,7 +310,7 @@ private class UHT_DeploymentStatusPoller_Test {
       SELECT missionsf__Status__c, missionsf__Error_Message__c
       FROM missionsf__UHT_Deployment_Log__c
       WHERE Id = :log.Id
-      WITH USER_MODE
+      WITH SYSTEM_MODE
     ];
 
     System.assertEquals(
@@ -351,7 +351,7 @@ private class UHT_DeploymentStatusPoller_Test {
       SELECT missionsf__Status__c
       FROM missionsf__UHT_Deployment_Log__c
       WHERE Id = :log.Id
-      WITH USER_MODE
+      WITH SYSTEM_MODE
     ];
 
     // Status should be updated to something other than initial (In Progress was checked)
@@ -391,7 +391,7 @@ private class UHT_DeploymentStatusPoller_Test {
         missionsf__Completed_At__c
       FROM missionsf__UHT_Deployment_Log__c
       WHERE Id = :log.Id
-      WITH USER_MODE
+      WITH SYSTEM_MODE
     ];
 
     System.assertEquals(
@@ -437,7 +437,7 @@ private class UHT_DeploymentStatusPoller_Test {
         missionsf__Completed_At__c
       FROM missionsf__UHT_Deployment_Log__c
       WHERE Id = :log.Id
-      WITH USER_MODE
+      WITH SYSTEM_MODE
     ];
 
     System.assertEquals(
@@ -481,7 +481,7 @@ private class UHT_DeploymentStatusPoller_Test {
       SELECT missionsf__Error_Message__c
       FROM missionsf__UHT_Deployment_Log__c
       WHERE Id = :log.Id
-      WITH USER_MODE
+      WITH SYSTEM_MODE
     ];
 
     System.assert(
@@ -554,7 +554,7 @@ private class UHT_DeploymentStatusPoller_Test {
       SELECT missionsf__Status__c, missionsf__Error_Message__c
       FROM missionsf__UHT_Deployment_Log__c
       WHERE Id = :log.Id
-      WITH USER_MODE
+      WITH SYSTEM_MODE
     ];
 
     System.assertEquals(

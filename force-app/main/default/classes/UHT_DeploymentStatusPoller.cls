@@ -80,7 +80,7 @@ public with sharing class UHT_DeploymentStatusPoller implements Queueable, Datab
       log.missionsf__Error_Message__c = extractErrorMessage(result);
     }
 
-    Database.update(log, AccessLevel.USER_MODE);
+    Database.update(log, AccessLevel.SYSTEM_MODE);
   }
 
   /**
@@ -139,7 +139,7 @@ public with sharing class UHT_DeploymentStatusPoller implements Queueable, Datab
         ' attempts. Check Setup > Deployment Status manually.',
       missionsf__Completed_At__c = Datetime.now()
     );
-    Database.update(log, AccessLevel.USER_MODE);
+    Database.update(log, AccessLevel.SYSTEM_MODE);
   }
 
   /**
@@ -152,6 +152,6 @@ public with sharing class UHT_DeploymentStatusPoller implements Queueable, Datab
       missionsf__Error_Message__c = 'Polling error: ' + errorMessage,
       missionsf__Completed_At__c = Datetime.now()
     );
-    Database.update(log, AccessLevel.USER_MODE);
+    Database.update(log, AccessLevel.SYSTEM_MODE);
   }
 }

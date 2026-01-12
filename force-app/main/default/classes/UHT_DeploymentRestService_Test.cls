@@ -215,7 +215,7 @@ private class UHT_DeploymentRestService_Test {
       SELECT missionsf__Object_Name__c, missionsf__Status__c
       FROM missionsf__UHT_Deployment_Log__c
       WHERE missionsf__Object_Name__c = 'Case'
-      WITH USER_MODE
+      WITH SYSTEM_MODE
     ];
 
     System.assertEquals(1, logs.size(), 'Should create deployment log');
@@ -275,7 +275,7 @@ private class UHT_DeploymentRestService_Test {
       SELECT Id
       FROM missionsf__UHT_Deployment_Log__c
       WHERE missionsf__Object_Name__c = 'Opportunity'
-      WITH USER_MODE
+      WITH SYSTEM_MODE
     ];
 
     System.assertEquals(1, logs.size(), 'Should not create duplicate log');
